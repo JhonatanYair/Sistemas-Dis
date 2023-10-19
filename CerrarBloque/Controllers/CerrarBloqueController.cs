@@ -1,4 +1,4 @@
-﻿using CerrarBloque.Model;
+﻿using BlockModel.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CerrarBloque.Controllers
@@ -11,6 +11,7 @@ namespace CerrarBloque.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] List<Block> blocks)
         {
+            Console.WriteLine();
             blocks.Last().IsOpen = false;
             return Ok(blocks);
         }

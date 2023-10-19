@@ -1,4 +1,4 @@
-﻿namespace CerrarBloque.Model
+﻿namespace BlockModel.Model
 {
     public class Client
     {

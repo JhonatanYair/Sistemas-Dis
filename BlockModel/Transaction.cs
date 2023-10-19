@@ -1,8 +1,6 @@
-﻿using System.Data.SqlTypes;
-
-namespace BlockChain.Model
+﻿namespace BlockModel.Model
 {
-    public class Transaction
+    public class TransactionChain
     {
 
         public int Id { get; set; }

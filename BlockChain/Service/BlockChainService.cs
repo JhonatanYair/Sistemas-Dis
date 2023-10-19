@@ -1,6 +1,7 @@
-﻿using BlockChain.Model;
+﻿using BlockModel.Model;
 using System.Text;
 using System.Security.Cryptography;
+using Newtonsoft.Json;
 
 namespace BlockChain.Service
 {
@@ -8,16 +9,16 @@ namespace BlockChain.Service
     {
 
         private readonly HttpClient httpClient;
-        private static Guid prevHash = Guid.Parse("00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498");
-        private static int idTransction = 1;
+        private static string prevHash = "00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498";
+        private static int idTransaction = 1;
         private static List<Block> blocks = new List<Block>()
         {
             new Block()
             {
                 Id = 1,
-                Transactions = new List<Transaction>()
+                Transactions = new List<TransactionChain>()
                 {
-                    new Transaction()
+                    new TransactionChain()
                     {
                         Id = 1,
                         Receiver = new Client(){
@@ -28,8 +29,8 @@ namespace BlockChain.Service
                         {
                             Data = 10,
                             Nonce = 70964,
-                            Prev = Guid.Parse("0000000000000000000000000000000000000000000000000000000000000000"),
-                            Hash = Guid.Parse("00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498"),
+                            Prev = ("0000000000000000000000000000000000000000000000000000000000000000"),
+                            Hash = ("00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498"),
                         }
                     }
                 }
@@ -38,22 +39,12 @@ namespace BlockChain.Service
 
         public BlockChainService()
         {
-            /*
-             
             httpClient = new HttpClient();
-            List<Buzon> list = new List<Buzon>();
-            var apiUrl = "https://localhost:7074/api/EP0015ListadoBuzones";
-            var response = await httpClient.GetStringAsync(apiUrl);
-             
-            string json = JsonConvert.SerializeObject(apiResponse, Formatting.Indented);
-            //Console.WriteLine(json);
-            list = JsonConvert.DeserializeObject<List<Buzon>>(apiResponse);
-
-             */
         }
 
         private string GenerateHash(string input)
         {
+            Console.WriteLine();
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] data = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
@@ -64,12 +55,14 @@ namespace BlockChain.Service
                     builder.Append(data[i].ToString("x2"));
                 }
 
+                Console.WriteLine();
                 return builder.ToString();
             }
         }
 
         private Chain GenerateChain(float data)
         {
+            Console.WriteLine();
             int nonce = 0;
             string hash;
             do
@@ -88,60 +81,70 @@ namespace BlockChain.Service
             Chain chain = new Chain()
             {
                 Data = data,
-                Hash = Guid.Parse(hash),
+                Hash = (hash),
                 Nonce = nonce,
                 Prev = prevHash
             };
 
-            prevHash = Guid.Parse(hash);
+            prevHash = (hash);
+            Console.WriteLine();
             return chain;
         }
 
-        public void SaveTransaction(TransactionDTO transaction)
+        public TransactionChain SaveTransaction(TransactionDTO transaction)
         {
-
-            var chainTransaction =  GenerateChain(transaction.Money);
+            Console.WriteLine();
+            var chainTransaction = GenerateChain(transaction.Money);
             if (blocks.Last().IsOpen == false)
             {
-                blocks.Add(new Block());
+                blocks.Add(new Block() { Id = blocks.Last().Id++ });
             }
 
-            blocks.Last().Transactions.Add(new Transaction() 
+            TransactionChain transactionChain = new TransactionChain()
             {
-                Id = idTransction,
+                Id = idTransaction++,
                 Chain = chainTransaction,
                 Description = transaction.Description,
                 Receiver = transaction.Receiver,
                 Sender = transaction.Sender
-            });
+            };
 
-            if (blocks.Last().Transactions.Count ==5)
+            blocks.Last().Transactions.Add(transactionChain);
+
+            if (blocks.Last().Transactions.Count == 5)
             {
-                //cerrar
-            }
+                var json = JsonConvert.SerializeObject(blocks);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var apiUrl = "http://localhost:5172/api/CerrarBloque";
 
+                HttpResponseMessage response = httpClient.PostAsync(apiUrl, content).Result;
+                string jsonResponse = response.Content.ReadAsStringAsync().Result;
+                blocks = JsonConvert.DeserializeObject<List<Block>>(jsonResponse);
+            }
+            Console.WriteLine();
+            return transactionChain;
         }
 
         public float QueryTotal(int clientId)
         {
-
-            int receivedMoney = (int)blocks
+            float receivedMoney = (float)blocks
                 .SelectMany(block => block.Transactions)
                 .Where(transaction => transaction.Receiver.Id == clientId)
                 .Sum(transaction => transaction.Chain.Data);
 
-            int sentMoney = (int)blocks
+            float sentMoney = (float)blocks
             .SelectMany(block => block.Transactions)
-            .Where(transaction => transaction.Sender.Id == clientId)
+            .Where(transaction => transaction.Sender?.Id == clientId)
             .Sum(transaction => transaction.Chain.Data);
 
-            int balance = receivedMoney - sentMoney;
-
+            float balance = receivedMoney - sentMoney;
+            Console.WriteLine();
             return balance;
         }
 
         public List<Block> GetBlockChain()
         {
+            Console.WriteLine();
             return blocks;
         }
 
@@ -154,11 +157,9 @@ namespace BlockChain.Service
 
     public interface IBlockChainService
     {
-
-        void SaveTransaction(TransactionDTO transaction);
+        TransactionChain SaveTransaction(TransactionDTO transaction);
         float QueryTotal(int clientId);
         List<Block> GetBlockChain();
         void SetBlockChain(List<Block> _blocks);
     }
-
 }
