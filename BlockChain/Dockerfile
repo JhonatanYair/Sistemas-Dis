@@ -7,10 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["BlockChain.csproj", "."]
-RUN dotnet restore "./BlockChain.csproj"
+COPY ["BlockChain/BlockChain.csproj", "BlockChain/"]
+COPY ["BlockModel/BlockModel.csproj", "BlockModel/"]
+RUN dotnet restore "BlockChain/BlockChain.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/BlockChain"
 RUN dotnet build "BlockChain.csproj" -c Release -o /app/build
 
 FROM build AS publish

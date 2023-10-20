@@ -46,7 +46,7 @@ namespace Coordinador.Service
 
         public async Task<ApiResponse> IsValidTransaction(TransactionDTO transaction)
         {
-            var blocks = GetBlocks();
+            List<Block> blocks = GetBlocks();
 
             ApiParam apiParam = new ApiParam()
             {
@@ -59,6 +59,7 @@ namespace Coordinador.Service
             var apiUrl = "https://localhost:7295/api/Validador/IsValidTransaction";
 
             HttpResponseMessage response =await httpClient.PostAsync(apiUrl, content);
+            Console.WriteLine(response);
             string jsonResponse =await response.Content.ReadAsStringAsync();
             var responseApi = JsonConvert.DeserializeObject<ApiResponse>(jsonResponse);
             Console.WriteLine();

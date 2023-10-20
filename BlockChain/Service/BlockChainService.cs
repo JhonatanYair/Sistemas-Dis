@@ -9,13 +9,23 @@ namespace BlockChain.Service
     {
 
         private readonly HttpClient httpClient;
-        private static string prevHash = "00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498";
+        //private static string prevHash = "00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498";
+        private static string prevHash = "0000000000000000000000000000000000000000000000000000000000000000";
         private static int idTransaction = 1;
+        private static int idBlock = 1;
         private static List<Block> blocks = new List<Block>()
         {
             new Block()
             {
                 Id = 1,
+                /*Chain = new Chain()
+                {
+                    Data = 10,
+                    Nonce = 70964,
+                    Prev = ("0000000000000000000000000000000000000000000000000000000000000000"),
+                    Hash = ("00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498"),
+                },*/
+
                 Transactions = new List<TransactionChain>()
                 {
                     new TransactionChain()
@@ -25,13 +35,13 @@ namespace BlockChain.Service
                             Id = 1,
                             Name = "Andres Camilo Rojas"
                         },
-                        Chain = new Chain()
+                        /*Chain = new Chain()
                         {
                             Data = 10,
                             Nonce = 70964,
                             Prev = ("0000000000000000000000000000000000000000000000000000000000000000"),
                             Hash = ("00004f6470fe351ba7a7c3754788362e8010018f7316a2a64981975253e60498"),
-                        }
+                        }*/
                     }
                 }
             }
@@ -60,23 +70,24 @@ namespace BlockChain.Service
             }
         }
 
-        private Chain GenerateChain(float data)
+        private Chain GenerateChain(string data)
         {
-            Console.WriteLine();
+            Console.WriteLine("GenerateChain");
             int nonce = 0;
             string hash;
-            do
+            while (true)
             {
+                Console.WriteLine($"nonce {nonce}");
+
                 string input = $"{nonce}{data}{prevHash}";
                 hash = GenerateHash(input);
-                bool startsWith = input.StartsWith("0000");
-
+                bool startsWith = hash.Substring(0, 4) == "0000";
                 if (startsWith == true)
                 {
                     break;
                 }
                 nonce++;
-            } while (true);
+            };
 
             Chain chain = new Chain()
             {
@@ -94,16 +105,17 @@ namespace BlockChain.Service
         public TransactionChain SaveTransaction(TransactionDTO transaction)
         {
             Console.WriteLine();
+            /*
             var chainTransaction = GenerateChain(transaction.Money);
             if (blocks.Last().IsOpen == false)
             {
                 blocks.Add(new Block() { Id = blocks.Last().Id++ });
-            }
+            }*/
 
             TransactionChain transactionChain = new TransactionChain()
             {
                 Id = idTransaction++,
-                Chain = chainTransaction,
+                //Chain = chainTransaction,
                 Description = transaction.Description,
                 Receiver = transaction.Receiver,
                 Sender = transaction.Sender
@@ -113,13 +125,13 @@ namespace BlockChain.Service
 
             if (blocks.Last().Transactions.Count == 5)
             {
-                var json = JsonConvert.SerializeObject(blocks);
+                /*var json = JsonConvert.SerializeObject(blocks);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var apiUrl = "http://localhost:5172/api/CerrarBloque";
 
                 HttpResponseMessage response = httpClient.PostAsync(apiUrl, content).Result;
                 string jsonResponse = response.Content.ReadAsStringAsync().Result;
-                blocks = JsonConvert.DeserializeObject<List<Block>>(jsonResponse);
+                blocks = JsonConvert.DeserializeObject<List<Block>>(jsonResponse);*/
             }
             Console.WriteLine();
             return transactionChain;
@@ -138,8 +150,21 @@ namespace BlockChain.Service
             .Sum(transaction => transaction.Chain.Data);
 
             float balance = receivedMoney - sentMoney;
-            Console.WriteLine();
+            Console.WriteLine(balance);
+            Console.WriteLine(balance);
             return balance;
+        }
+
+        public void CerrarChain(BlockChain block)
+        {
+
+            string blockString = block.ToString();
+            var Chain = GenerateHash(blockString);
+            block.Chain=Chain;
+
+            blocks.Last()=block;
+            block.Add(new BlockChain ())
+
         }
 
         public List<Block> GetBlockChain()
