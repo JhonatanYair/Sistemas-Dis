@@ -11,7 +11,6 @@ namespace Validador.Controllers
         [HttpPost]
         public async Task<IActionResult> IsValidTransaction([FromBody] ApiParam request)
         {
-            Console.WriteLine("Entra");
             var blocks = request.Blocks;
             var transaction = request.TransactionDTO;
 
@@ -32,14 +31,12 @@ namespace Validador.Controllers
                 response.Response = "";
             }
 
-            Console.WriteLine();
             return Ok(response);
         }
 
         [HttpPost("IsValidClient/{idClient}")]
         public IActionResult IsValiClient(int idClient, [FromBody] ApiParam request)
         {
-            Console.WriteLine();
             var blocks = request.Blocks;
             var clientBlocks = blocks
                 .Where(block => block.Transactions.Any(t => t.Receiver.Id == idClient) ||
@@ -58,7 +55,6 @@ namespace Validador.Controllers
                 response.Response = "";
             }
 
-            Console.WriteLine();
             return Ok(response);
         }
     }

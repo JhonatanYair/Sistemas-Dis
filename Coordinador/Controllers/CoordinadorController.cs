@@ -37,15 +37,16 @@ namespace Coordinador.Controllers
             }
         }
 
-        [HttpGet("QueryTotal{idClient}")]
-        public IActionResult QueryTotal(int idClient)
+        [HttpGet("QueryTotal/{idClient}")]
+        public async Task<IActionResult> QueryTotal(int idClient)
         {
             try
             {
-                ApiResponse response = _coordinadorService.IsValidClient(idClient);
+                ApiResponse response = await _coordinadorService.IsValidClient(idClient);
                 if (response.IsValid == true)
                 {
-                    return Ok(_coordinadorService.QueryTotal(idClient));
+                    var responseTotal = _coordinadorService.QueryTotal(idClient);
+                    return Ok(responseTotal);
                 }
                 else
                 {

@@ -7,8 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["Validador.csproj", "."]
-RUN dotnet restore "./Validador.csproj"
+COPY ["Validador/Validador.csproj", "Validador/"]
+COPY ["BlockModel/BlockModel.csproj", "BlockModel/"]
+RUN dotnet restore "Validador/Validador.csproj"
 COPY . .
 WORKDIR "/src/."
 RUN dotnet build "Validador.csproj" -c Release -o /app/build

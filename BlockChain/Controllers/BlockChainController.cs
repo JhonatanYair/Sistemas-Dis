@@ -23,19 +23,19 @@ namespace BlockChain.Controllers
             return Ok(transactionChain);
         }
 
-        [HttpGet("QueryTotal{clientId}")]
+        [HttpGet("QueryTotal/{clientId}")]
         public IActionResult QueryTotal(int clientId)
         {
             var total = _blockChainService.QueryTotal(clientId);
-            ApiResponse response = new ApiResponse();
-            response.Response = total.ToString();
-            return Ok(response);
+            ApiResponse apiResponse = new ApiResponse();
+            apiResponse.Response = total.ToString();
+            return Ok(apiResponse);
         }
 
         [HttpGet]
-        public IActionResult BlockChain()
+        public async Task<IActionResult> BlockChain()
         {
-            var blocks = _blockChainService.GetBlockChain();
+            var blocks = await _blockChainService.GetBlockChain();
             return Ok(blocks);
         }
 

@@ -7,8 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["Coordinador.csproj", "."]
-RUN dotnet restore "./Coordinador.csproj"
+COPY ["Coordinador/Coordinador.csproj", "Coordinador/"]
+COPY ["BlockModel/BlockModel.csproj", "BlockModel/"]
+RUN dotnet restore "Coordinador/Coordinador.csproj"
 COPY . .
 WORKDIR "/src/."
 RUN dotnet build "Coordinador.csproj" -c Release -o /app/build

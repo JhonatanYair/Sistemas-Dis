@@ -1,4 +1,5 @@
 ﻿using BlockModel.Model;
+using CerrarBloque.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CerrarBloque.Controllers
@@ -8,11 +9,16 @@ namespace CerrarBloque.Controllers
     public class CerrarBloqueController : ControllerBase
     {
 
+        ICerrarBloqueService service;
+        public CerrarBloqueController(ICerrarBloqueService cerrarBloqueService) 
+        {
+            service = cerrarBloqueService;
+        }
+
         [HttpPost]
         public IActionResult Post([FromBody] List<Block> blocks)
         {
-            Console.WriteLine();
-            blocks.Last().IsOpen = false;
+            service.CerrarBlock(blocks);
             return Ok(blocks);
         }
 

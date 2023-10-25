@@ -1,9 +1,9 @@
 ﻿using BlockModel;
 using BlockModel.Model;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+//using System.Text.Json;
 
 namespace Coordinador.Service
 {
@@ -16,9 +16,9 @@ namespace Coordinador.Service
             httpClient = new HttpClient();
         }
 
-        public List<Block> GetBlocks()
+        public async Task<List<Block>> GetBlocks()
         {
-            var apiUrl = "http://localhost:5030/api/BlockChain";
+            var apiUrl = "http://blockchain/api/BlockChain";
             var response = httpClient.GetAsync(apiUrl).Result;
 
             string jsonResponse = response.Content.ReadAsStringAsync().Result;
@@ -27,26 +27,28 @@ namespace Coordinador.Service
             return blocks;
         }
 
-        public ApiResponse IsValidClient(int idClient)
+        public async Task<ApiResponse> IsValidClient(int idClient)
         {
-            var blocks = GetBlocks();
+            var blocks = await GetBlocks();
             ApiParam apiParam = new ApiParam();
             apiParam.Blocks = blocks;
 
             var json = JsonConvert.SerializeObject(apiParam);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var apiUrl = $"http://localhost:5243/api/Validador//IsValidClient/{idClient}";
 
-            HttpResponseMessage response = httpClient.PostAsync(apiUrl, content).Result;
-            string jsonResponse = response.Content.ReadAsStringAsync().Result;
+            var request = new HttpRequestMessage(HttpMethod.Post, $"http://validador/api/Validador/IsValidClient/{idClient}");
+            request.Content = content;
+            var response = await httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
             var responseApi = JsonConvert.DeserializeObject<ApiResponse>(jsonResponse);
-
             return responseApi;
         }
 
         public async Task<ApiResponse> IsValidTransaction(TransactionDTO transaction)
         {
-            List<Block> blocks = GetBlocks();
+            var blocks = await GetBlocks();
 
             ApiParam apiParam = new ApiParam()
             {
@@ -55,22 +57,24 @@ namespace Coordinador.Service
             };
 
             var json = JsonConvert.SerializeObject(apiParam);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var apiUrl = "https://localhost:7295/api/Validador/IsValidTransaction";
+            var content = new StringContent(json, null, "application/json");
 
-            HttpResponseMessage response =await httpClient.PostAsync(apiUrl, content);
-            Console.WriteLine(response);
-            string jsonResponse =await response.Content.ReadAsStringAsync();
+            var apiUrl = "http://validador/api/Validador/IsValidTransaction";
+            var response = await httpClient.PostAsync(apiUrl, content);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
             var responseApi = JsonConvert.DeserializeObject<ApiResponse>(jsonResponse);
-            Console.WriteLine();
+
             return responseApi;
+
         }
 
         public TransactionChain SendMoney(TransactionDTO transaction)
         {
             var json = JsonConvert.SerializeObject(transaction);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var apiUrl = "http://localhost:5030/api/BlockChain/SaveTranstaction";
+            var apiUrl = "http://blockchain/api/BlockChain/SaveTranstaction";
 
             HttpResponseMessage response = httpClient.PostAsync(apiUrl, content).Result;
             string jsonResponse = response.Content.ReadAsStringAsync().Result;
@@ -79,24 +83,22 @@ namespace Coordinador.Service
             return responseApi;
         }
 
-        public ApiResponse QueryTotal(int idClient)
+        public async Task<string> QueryTotal(int idClient)
         {
-            var apiUrl = $"http://localhost:5030/api/BlockChain/QueryTotal/{idClient}";
+            var apiUrl = $"http://blockchain/api/BlockChain/QueryTotal/{idClient}";
             var response = httpClient.GetAsync(apiUrl).Result;
-
             string jsonResponse = response.Content.ReadAsStringAsync().Result;
             var totalResponse = JsonConvert.DeserializeObject<ApiResponse>(jsonResponse);
-
-            return totalResponse;
+            return totalResponse.Response;
         }
     }
 
     public interface ICoordinadorService
     {
-        List<Block> GetBlocks();
-        ApiResponse IsValidClient(int idClient);
+        Task<List<Block>> GetBlocks();
+        Task<ApiResponse> IsValidClient(int idClient);
         Task<ApiResponse> IsValidTransaction(TransactionDTO transaction);
         TransactionChain SendMoney(TransactionDTO transaction);
-        ApiResponse QueryTotal(int idClient);
+        Task<string> QueryTotal(int idClient);
     }
 }

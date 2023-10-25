@@ -1,15 +1,11 @@
 ﻿using BlockModel.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace BlockModel
 {
     public class ApiParam
     {
-        public List<Block> Blocks { get; set; }
+        public virtual List<Block>? Blocks { get; set; }
         public TransactionDTO? TransactionDTO { get; set; }
 
     }
